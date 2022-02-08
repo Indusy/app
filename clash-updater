@@ -1,0 +1,65 @@
+#!/usr/bin/node
+
+const { exec } = require("child_process");
+exec(
+  "curl https://api.github.com/repos/Dreamacro/clash/releases/tags/premium",
+  (error, stdout) => {
+    if (error) throw error;
+    else {
+      const json = JSON.parse(stdout);
+      const regex = /\d+\.\d+\.\d+/;
+      const currentVersion = json.name.match(regex)[0];
+      exec("/usr/bin/clash -v", (error, stdout) => {
+        if (error) throw error;
+        else {
+          const latestVersion = stdout.match(regex)[0];
+
+          // 改成 !=
+
+          if (currentVersion == latestVersion) {
+            const rawUrl =
+              "https://github.com/Dreamacro/clash/releases/download/premium/clash-linux-amd64-?.gz";
+            const url = rawUrl.replace("?", latestVersion);
+            console.log(
+              `检测到更新！\n正在下载 clash premium ${latestVersion}...`
+            );
+            exec(
+              `wget -O /tmp/clash-linux-amd64-${latestVersion}.gz ${url}`,
+              () => {
+                if (error) throw error;
+                else {
+                  console.log("下载完成");
+                  exec(
+                    `gzip -d /tmp/clash-linux-amd64-${latestVersion}.gz`,
+                    () => {
+                      exec(
+                        `sudo chmod +x /tmp/clash-linux-amd64-${latestVersion}`,
+                        (error) => {
+                          if (error) throw error;
+                          else {
+                            console.log("授权 -");
+                            exec(
+                              `sudo mv /tmp/clash-linux-amd64-${latestVersion} /usr/bin/clash`,
+                              (error) => {
+                                if (error) throw error;
+                                else {
+                                  exec("systemctl restart clash", () => {
+                                    console.log("更新完成！");
+                                  });
+                                }
+                              }
+                            );
+                          }
+                        }
+                      );
+                    }
+                  );
+                }
+              }
+            );
+          }
+        }
+      });
+    }
+  }
+);
