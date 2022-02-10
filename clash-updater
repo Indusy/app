@@ -13,10 +13,7 @@ exec(
         if (error) throw error;
         else {
           const latestVersion = stdout.match(regex)[0];
-
-          // 改成 !=
-
-          if (currentVersion == latestVersion) {
+          if (currentVersion != latestVersion) {
             const rawUrl =
               "https://github.com/Dreamacro/clash/releases/download/premium/clash-linux-amd64-?.gz";
             const url = rawUrl.replace("?", latestVersion);
